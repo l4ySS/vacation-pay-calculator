@@ -18,7 +18,7 @@ import static org.mockito.Mockito.when;
 public class VacationPayCalculatorServiceTest {
 
     @InjectMocks
-    private VacationPayService vacationPayCalculatorService;
+    private VacationPayService vacationPayService;
 
     @Mock
     private HolidayService holidayService;
@@ -28,8 +28,8 @@ public class VacationPayCalculatorServiceTest {
     @Test
     void calculateVacationPay_withoutStartDate() {
         VacationPayRequest request = new VacationPayRequest(60000, 14, null);
-        double expectedPay = 60000.0 / 12 * 29.3 * 14;
-        assertEquals(expectedPay, vacationPayCalculatorService.calculateVacationPay(request), DELTA);
+        double expectedPay = 60000.0 / 29.3 * 14;
+        assertEquals(expectedPay, vacationPayService.calculateVacationPay(request), DELTA);
     }
 
     @Test
@@ -42,8 +42,8 @@ public class VacationPayCalculatorServiceTest {
         when(holidayService.isHoliday(startDate.plusDays(3))).thenReturn(false);
         when(holidayService.isHoliday(startDate.plusDays(4))).thenReturn(false);
 
-        double expectedPay = 60000.0 / 12 * 29.3 / 29.3 * 5;
-        assertEquals(expectedPay, vacationPayCalculatorService.calculateVacationPay(request), DELTA);
+        double expectedPay = 60000.0 / 29.3 * 5;
+        assertEquals(expectedPay, vacationPayService.calculateVacationPay(request), DELTA);
     }
 
     @Test
@@ -51,11 +51,9 @@ public class VacationPayCalculatorServiceTest {
         LocalDate startDate = LocalDate.of(2025, 4, 25); // Пятница
         VacationPayRequest request = new VacationPayRequest(60000, 3, startDate);
         when(holidayService.isHoliday(startDate)).thenReturn(false); // Пятница
-        when(holidayService.isHoliday(startDate.plusDays(1))).thenReturn(false); // Суббота
-        when(holidayService.isHoliday(startDate.plusDays(2))).thenReturn(false); // Воскресенье
 
-        double expectedPay = 60000.0 / 12 * 29.3 / 29.3 * 1;
-        assertEquals(expectedPay, vacationPayCalculatorService.calculateVacationPay(request), DELTA);
+        double expectedPay = 60000.0 / 29.3 * 1;
+        assertEquals(expectedPay, vacationPayService.calculateVacationPay(request), DELTA);
     }
 
     @Test
@@ -63,21 +61,19 @@ public class VacationPayCalculatorServiceTest {
         LocalDate startDate = LocalDate.of(2025, 5, 8); // Четверг
         VacationPayRequest request = new VacationPayRequest(60000, 2, startDate);
         when(holidayService.isHoliday(startDate)).thenReturn(false); // Четверг
-        when(holidayService.isHoliday(startDate.plusDays(1))).thenReturn(true);  // Пятница (праздник)
+        when(holidayService.isHoliday(startDate.plusDays(1))).thenReturn(true);  // Пятница
 
-        double expectedPay = 60000.0 / 12 * 29.3 / 29.3 * 1;
-        assertEquals(expectedPay, vacationPayCalculatorService.calculateVacationPay(request), DELTA);
+        double expectedPay = 60000.0 / 29.3 * 1;
+        assertEquals(expectedPay, vacationPayService.calculateVacationPay(request), DELTA);
     }
 
     @Test
     void calculateVacationPay_withStartDate_weekendAndHoliday() {
-        LocalDate startDate = LocalDate.of(2025, 5, 9); // Пятница (праздник)
+        LocalDate startDate = LocalDate.of(2025, 5, 9); // Пятница
         VacationPayRequest request = new VacationPayRequest(60000, 3, startDate);
-        when(holidayService.isHoliday(startDate)).thenReturn(true);   // Пятница (праздник)
-        when(holidayService.isHoliday(startDate.plusDays(1))).thenReturn(false); // Суббота
-        when(holidayService.isHoliday(startDate.plusDays(2))).thenReturn(false); // Воскресенье
+        when(holidayService.isHoliday(startDate)).thenReturn(true);   // Пятница
 
-        double expectedPay = 60000.0 / 12 * 29.3 / 29.3 * 0;
-        assertEquals(expectedPay, vacationPayCalculatorService.calculateVacationPay(request), DELTA);
+        double expectedPay = 0.0;
+        assertEquals(expectedPay, vacationPayService.calculateVacationPay(request), DELTA);
     }
 }
